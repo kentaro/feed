@@ -1,1 +1,1 @@
-MyFeeds.run("output/index.rss")
+MyFeeds.run()

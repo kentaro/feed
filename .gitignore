@@ -24,3 +24,6 @@ my_feeds-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Genearted file
+/output/index.rss

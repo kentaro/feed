@@ -1,14 +1,14 @@
 defmodule MyFeeds do
-  def run(file) do
+  def run(opts \\ []) do
     Application.get_env(:my_feeds, :urls)
     |> Enum.map(&fetch/1)
     |> Task.await_many(60_000)
     |> Enum.map(&parse/1)
     |> List.flatten()
     |> Enum.sort_by(&parse_pubdate/1, {:desc, NaiveDateTime})
-    |> Enum.take(10)
+    |> Enum.take(opts[:num] || 30)
     |> build()
-    |> write(file)
+    |> write(opts[:file] || "output/index.rss")
   end
 
   defp fetch(url) do

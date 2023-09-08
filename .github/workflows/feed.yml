@@ -30,7 +30,7 @@ jobs:
       # build
       - uses: actions/checkout@main
       - name: Install Rust compiler
-        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
       - uses: erlef/setup-beam@main
         with:
           otp-version: '26.0.2'

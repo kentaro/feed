@@ -1,5 +1,5 @@
 defmodule MyFeeds do
-  def run do
+  def run(file) do
     Application.get_env(:my_feeds, :urls)
     |> Enum.map(&fetch/1)
     |> Task.await_many(60_000)
@@ -8,7 +8,7 @@ defmodule MyFeeds do
     |> Enum.sort_by(&parse_pubdate/1, {:desc, NaiveDateTime})
     |> Enum.take(10)
     |> build()
-    |> IO.puts()
+    |> write(file)
   end
 
   defp fetch(url) do
@@ -81,5 +81,9 @@ defmodule MyFeeds do
         <enclosure url="#{item["enclosure"]["url"]}"  type="image/png" />
         """
     end
+  end
+
+  defp write(content, file) do
+    File.write(file, content)
   end
 end

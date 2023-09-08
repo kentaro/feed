@@ -1,2 +1,1 @@
-MyFeeds.run()
-|> File.write("build/index.rss")
+MyFeeds.run("output/index.rss")

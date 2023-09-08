@@ -37,7 +37,7 @@ jobs:
           elixir-version: '1.15.5'
       - run: mix deps.get
       - name: Generate a custom feed
-        run: mkdir build && mix run scripts/generate_feed.exs > build/index.rss
+        run: mkdir build && mix run scripts/generate_feed.exs 2>/dev/null > build/index.rss
 
       # deploy
       - name: Setup Pages

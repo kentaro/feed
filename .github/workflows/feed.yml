@@ -1,0 +1,51 @@
+name: Generate a feed for my sites
+
+on:
+  push:
+    branches: ["main"]
+
+  schedule:
+    - cron: '0 * * * *'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # build
+      - uses: actions/checkout@main
+      - name: Install Rust compiler
+        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+      - uses: erlef/setup-beam@main
+        with:
+          otp-version: '26.0.2'
+          elixir-version: '1.15.5'
+      - run: mix deps.get
+      - name: Generate a custom feed
+        run: mkdir build && mix run scripts/generate_feed.exs > build/index.rss
+
+      # deploy
+      - name: Setup Pages
+        uses: actions/configure-pages@main
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@main
+        with:
+          path: './build'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@main

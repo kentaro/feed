@@ -36,8 +36,10 @@ jobs:
           otp-version: '26.0.2'
           elixir-version: '1.15.5'
       - run: mix deps.get
-      - name: Generate a custom feed
+      - name: Generate a feed
         run: mix run scripts/generate_feed.exs
+      - name: Generate a JSON
+        run: mix run scripts/generate_json.exs
 
       # deploy
       - name: Setup Pages

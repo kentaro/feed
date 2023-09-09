@@ -26,7 +26,8 @@ defmodule MyFeeds.MixProject do
       {:fast_rss, "~> 0.4.0"},
       {:req, "~> 0.4.2"},
       {:date_time_parser, "~> 1.1.5"},
-      {:timex, "~> 3.7.2"}
+      {:timex, "~> 3.7.2"},
+      {:jason, "~> 1.4.0"}
     ]
   end
 end

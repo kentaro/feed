@@ -26,4 +26,4 @@ my_feeds-*.tar
 /tmp/
 
 # Genearted file
-/output/index.rss
+/output/index.xml

@@ -8,7 +8,7 @@ defmodule MyFeeds do
     |> Enum.sort_by(&parse_pubdate/1, {:desc, NaiveDateTime})
     |> Enum.take(opts[:num] || 30)
     |> build()
-    |> write(opts[:file] || "output/index.rss")
+    |> write(opts[:file] || "output/index.xml")
   end
 
   defp fetch(url) do

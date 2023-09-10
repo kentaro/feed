@@ -6,7 +6,7 @@ defmodule MyFeeds do
     |> Enum.map(&parse/1)
     |> List.flatten()
     |> Enum.sort_by(&parse_pubdate/1, {:desc, NaiveDateTime})
-    |> Enum.take(opts[:num] || 100)
+    |> Enum.take(opts[:num] || 50)
     |> build()
     |> write(opts[:file] || "output/index.xml")
   end

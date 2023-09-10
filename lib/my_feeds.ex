@@ -18,12 +18,19 @@ defmodule MyFeeds do
   end
 
   defp parse(body) do
-    {:ok, feed} = FastRSS.parse(body)
-    feed["items"]
+    {:ok, feed} =
+      case String.match?(body, ~r/<feed/) do
+        true -> body |> FastRSS.parse_atom()
+        _ -> body |> FastRSS.parse_rss()
+      end
+
+      feed["items"] || feed["entries"]
   end
 
   defp parse_pubdate(item) do
-    {:ok, dt} = DateTimeParser.parse(item["pub_date"])
+    {:ok, dt} = DateTimeParser.parse(
+      item["pub_date"] || item["published"]
+    )
     dt
   end
 
@@ -52,33 +59,69 @@ defmodule MyFeeds do
   end
 
   defp build_item(item) do
+    IO.inspect(item)
     """
       <item>
-        <title>#{item["title"]}</title>
+        <title>#{title(item)}</title>
         <description><![CDATA[
-          #{item["description"]}
+          #{description(item)}
         ]]></description>
-        <pubDate>#{item["pub_date"]}</pubDate>
-        <link>#{item["link"]}</link>
-        <guid isPermalink="#{item["guid"]["permalink"]}">#{item["guid"]["value"]}</guid>
+        <pubDate>#{pub_date(item)}</pubDate>
+        <link>#{link(item)}</link>
+        #{guid(item)}
         #{enclosure(item)}
       </item>
     """
   end
 
+  defp title(item) do
+    (is_map(item["title"]) && item["title"]["value"])
+    || item["title"]
+  end
+
+  defp description(item) do
+    (item["description"] && item["description"])
+    || get_in(item, ["extensions", "media", "group", Access.at(0), "children", "description", Access.at(0), "value"])
+  end
+
+  defp link(item) do
+    (is_list(item["links"]) && get_in(item["links"], [Access.at(0), "href"]))
+    || item["link"]
+  end
+
+  defp pub_date(item) do
+    item["pub_date"] || item["published"]
+  end
+
+  defp guid(item) do
+    item["guid"] &&
+    """
+    <guid isPermalink="#{item["guid"]["permalink"]}">#{item["guid"]["value"]}</guid>
+    """
+    ||
+    """
+    <guid isPermalink="false">#{item["id"]}</guid>
+    """
+  end
+
   defp enclosure(item) do
     cond do
-      item["link"] |> String.starts_with?("https://listen.style") ->
+      link(item) |> String.starts_with?("https://listen.style") ->
         """
         <enclosure url="#{item["itunes_ext"]["image"]}" type="image/jpeg" />
         """
-      item["link"] |> String.starts_with?("https://note.com") ->
+      link(item) |> String.starts_with?("https://note.com") ->
         """
         <enclosure url="#{get_in(item, ["extensions", "media", "thumbnail", Access.at(0), "value"])}" type="image/jpeg" />
         """
-      item["link"] |> String.starts_with?("https://zenn.dev") ->
+      link(item) |> String.starts_with?("https://zenn.dev") ->
         """
         <enclosure url="#{item["enclosure"]["url"]}"  type="image/png" />
+        """
+      link(item) |> String.starts_with?("https://www.youtube.com") ->
+        url = get_in(item, ["extensions", "media", "group", Access.at(0), "children", "thumbnail", Access.at(0), "attrs", "url"])
+        """
+        <enclosure url="#{url}"  type="image/jpeg" />
         """
     end
   end

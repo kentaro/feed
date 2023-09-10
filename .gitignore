@@ -27,3 +27,4 @@ my_feeds-*.tar
 
 # Genearted file
 /output/index.xml
+/output/index.json

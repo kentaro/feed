@@ -8,5 +8,6 @@ config :my_feeds,
     "https://note.com/kentarok/rss",
     "https://listen.style/p/kentaro/rss",
     "https://zenn.dev/kentarok/feed",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCePhLXeZjDdNEosOqpmD19A"
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCePhLXeZjDdNEosOqpmD19A",
+    "https://rss.app/feeds/XizE8UIPuaIxjDeC.xml"
   ]

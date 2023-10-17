@@ -125,7 +125,7 @@ defmodule MyFeeds do
         """
       link(item) |> String.starts_with?("https://www.tiktok.com") ->
           """
-          <enclosure url="#{item["enclosure"]["url"]}"  type="image/jpeg" />
+          <enclosure url="#{item["enclosure"]["url"] |> String.replace("&", "&amp;")}" type="image/jpeg" />
           """
     end
   end

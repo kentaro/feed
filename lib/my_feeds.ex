@@ -59,7 +59,6 @@ defmodule MyFeeds do
   end
 
   defp build_item(item) do
-    IO.inspect(item)
     """
       <item>
         <title>#{title(item)}</title>
@@ -124,15 +123,14 @@ defmodule MyFeeds do
         <enclosure url="#{url}"  type="image/jpeg" />
         """
       link(item) |> String.starts_with?("https://www.tiktok.com") ->
-          """
-          <enclosure url="#{item["enclosure"]["url"] |> String.replace("&", "&amp;")}" type="image/jpeg" />
-          """
+        """
+        <enclosure url="#{item["enclosure"]["url"] |> String.replace("&", "&amp;")}" type="image/jpeg" />
+        """
       link(item) |> String.starts_with?("https://speakerdeck.com") ->
-          [url] =
-            Regex.run(~R|https://files.speakerdeck.com/presentations/[^"]+|, item["description"])
-          """
-          <enclosure url="#{url}" type="image/jpeg" />
-          """
+        url = get_in(item, ["extensions", "media", "content", Access.at(0), "attrs", "url"])
+        """
+        <enclosure url="#{url}" type="image/jpeg" />
+        """
     end
   end
 

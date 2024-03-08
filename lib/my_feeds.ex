@@ -5,6 +5,7 @@ defmodule MyFeeds do
     |> Task.await_many(60_000)
     |> Enum.map(&parse/1)
     |> List.flatten()
+    |> filter()
     |> Enum.sort_by(&parse_pubdate/1, {:desc, NaiveDateTime})
     |> Enum.take(opts[:num] || 100)
     |> build()
@@ -24,14 +25,20 @@ defmodule MyFeeds do
         _ -> body |> FastRSS.parse_rss()
       end
 
-      feed["items"] || feed["entries"]
+    feed["items"] || feed["entries"]
   end
 
   defp parse_pubdate(item) do
-    {:ok, dt} = DateTimeParser.parse(
-      item["pub_date"] || item["published"]
-    )
+    {:ok, dt} = DateTimeParser.parse(item["pub_date"] || item["published"])
     dt
+  end
+
+  defp filter(items) do
+    items
+    |> Enum.filter(fn item ->
+      !Regex.match?(~r|^https://note\.com|, link(item)) ||
+        !Regex.match?(~r|^\d+年\d+月\d{1,2}日|, title(item))
+    end)
   end
 
   defp build(items) do
@@ -74,18 +81,27 @@ defmodule MyFeeds do
   end
 
   defp title(item) do
-    (is_map(item["title"]) && item["title"]["value"])
-    || item["title"]
+    (is_map(item["title"]) && item["title"]["value"]) ||
+      item["title"]
   end
 
   defp description(item) do
-    (item["description"] && item["description"])
-    || get_in(item, ["extensions", "media", "group", Access.at(0), "children", "description", Access.at(0), "value"])
+    (item["description"] && item["description"]) ||
+      get_in(item, [
+        "extensions",
+        "media",
+        "group",
+        Access.at(0),
+        "children",
+        "description",
+        Access.at(0),
+        "value"
+      ])
   end
 
   defp link(item) do
-    (is_list(item["links"]) && get_in(item["links"], [Access.at(0), "href"]))
-    || item["link"]
+    (is_list(item["links"]) && get_in(item["links"], [Access.at(0), "href"])) ||
+      item["link"]
   end
 
   defp pub_date(item) do
@@ -93,14 +109,13 @@ defmodule MyFeeds do
   end
 
   defp guid(item) do
-    item["guid"] &&
-    """
-    <guid isPermalink="#{item["guid"]["permalink"]}">#{item["guid"]["value"]}</guid>
-    """
-    ||
-    """
-    <guid isPermalink="false">#{item["id"]}</guid>
-    """
+    (item["guid"] &&
+       """
+       <guid isPermalink="#{item["guid"]["permalink"]}">#{item["guid"]["value"]}</guid>
+       """) ||
+      """
+      <guid isPermalink="false">#{item["id"]}</guid>
+      """
   end
 
   defp enclosure(item) do
@@ -109,25 +124,43 @@ defmodule MyFeeds do
         """
         <enclosure url="#{item["itunes_ext"]["image"]}" type="image/jpeg" />
         """
+
       link(item) |> String.starts_with?("https://note.com") ->
         """
         <enclosure url="#{get_in(item, ["extensions", "media", "thumbnail", Access.at(0), "value"])}" type="image/jpeg" />
         """
+
       link(item) |> String.starts_with?("https://zenn.dev") ->
         """
         <enclosure url="#{item["enclosure"]["url"]}"  type="image/png" />
         """
+
       link(item) |> String.starts_with?("https://www.youtube.com") ->
-        url = get_in(item, ["extensions", "media", "group", Access.at(0), "children", "thumbnail", Access.at(0), "attrs", "url"])
+        url =
+          get_in(item, [
+            "extensions",
+            "media",
+            "group",
+            Access.at(0),
+            "children",
+            "thumbnail",
+            Access.at(0),
+            "attrs",
+            "url"
+          ])
+
         """
         <enclosure url="#{url}"  type="image/jpeg" />
         """
+
       link(item) |> String.starts_with?("https://www.tiktok.com") ->
         """
         <enclosure url="#{item["enclosure"]["url"] |> String.replace("&", "&amp;")}" type="image/jpeg" />
         """
+
       link(item) |> String.starts_with?("https://speakerdeck.com") ->
         url = get_in(item, ["extensions", "media", "content", Access.at(0), "attrs", "url"])
+
         """
         <enclosure url="#{url}" type="image/jpeg" />
         """

@@ -10,4 +10,5 @@ config :my_feeds,
     "https://zenn.dev/kentarok/feed",
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCePhLXeZjDdNEosOqpmD19A",
     "https://speakerdeck.com/kentaro.rss",
+    "https://feeds.soundcloud.com/users/soundcloud:users:188611416/sounds.rss",
   ]

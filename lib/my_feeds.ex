@@ -34,10 +34,11 @@ defmodule MyFeeds do
   end
 
   defp filter(items) do
+    # noteの有料記事を除外する
     items
     |> Enum.filter(fn item ->
       !Regex.match?(~r|^https://note\.com|, link(item)) ||
-        !Regex.match?(~r|^\d+年\d+月\d{1,2}日|, title(item))
+        !Regex.match?(~r|^\d+年\d+月\d+日|, title(item))
     end)
   end
 
@@ -163,6 +164,11 @@ defmodule MyFeeds do
 
         """
         <enclosure url="#{url}" type="image/jpeg" />
+        """
+
+      link(item) |> String.starts_with?("https://soundcloud.com") ->
+        """
+        <enclosure url="#{item["itunes_ext"]["image"]}" type="image/jpeg" />
         """
     end
   end
